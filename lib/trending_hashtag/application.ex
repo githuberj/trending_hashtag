@@ -21,6 +21,17 @@ defmodule TrendingHashtag.Application do
         id: TrendingHashtag.JetstreamClient,
         start: {TrendingHashtag.JetstreamClient, :start_link, []}
       },
+      %{
+        id: TrendingHashtag.TrendingHashtag,
+        start: {TrendingHashtag.TrendingHashtag, :start_link, []}
+      },
+      {Nx.Serving,
+       serving: TrendingHashtag.NsfwClassifier.serving(),
+       name: NsfwClassifier,
+       batch_size: 10,
+       batch_timeout: 100,
+       partitions: true},
+      %{id: TrendingHashtag.SfwCache, start: {TrendingHashtag.SfwCache, :start_link, []}},
       TrendingHashtagWeb.Endpoint
     ]
 

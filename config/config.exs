@@ -31,6 +31,8 @@ config :trending_hashtag, TrendingHashtagWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :trending_hashtag, TrendingHashtag.Mailer, adapter: Swoosh.Adapters.Local
 
+config :nx, :default_backend, EXLA.Backend
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",

@@ -59,7 +59,9 @@ defmodule TrendingHashtag.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:gun, "~> 2.0"}
+      {:gun, "~> 2.0"},
+      {:bumblebee, "~> 0.6.0"},
+      {:exla, "~> 0.9"}
     ]
   end
 

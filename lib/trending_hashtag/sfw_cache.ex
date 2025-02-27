@@ -4,7 +4,7 @@ defmodule TrendingHashtag.SfwCache do
 
   alias TrendingHashtag.TrendingHashtag
 
-  @interval 1
+  @interval 100
 
   @ets_key "SFW"
   defp flush, do: Process.send_after(self(), :flush, @interval)
@@ -12,6 +12,7 @@ defmodule TrendingHashtag.SfwCache do
   def init(_) do
     :ets.new(__MODULE__, [:named_table, read_concurrency: true])
     :ets.insert(__MODULE__, {@ets_key, {Time.utc_now(), []}})
+    :ets.new(:inference_cache, [:named_table, :set])
     flush()
 
     {:ok, []}
@@ -26,29 +27,59 @@ defmodule TrendingHashtag.SfwCache do
     value
   end
 
-  def handle_info(:flush, _state) do
+  def handle_info(:flush, []) do
     {_size, map} = GenServer.call(TrendingHashtag, :get, 3000)
-    tag_value_list = map |> Map.to_list() |> Enum.sort(fn {_k1, v1}, {_k2, v2} -> v1 >= v2 end)
-    tag_list = Enum.map(tag_value_list, fn {k, _v} -> k end)
 
-    if tag_list == [] do
+    tag_value_list =
+      map
+      |> Map.to_list()
+      |> Enum.sort(&TagExtractor.tag_cmp/2)
+      |> Enum.take(40)
+
+    if tag_value_list == [] do
       flush()
       {:noreply, []}
     else
-      results = Nx.Serving.batched_run(NsfwClassifier, tag_list)
+      {safe, unknown} =
+        Enum.reduce(tag_value_list, {[], []}, fn {k, v}, {safe, unknown} ->
+          pair = :ets.lookup(:inference_cache, k)
 
-      sfw_tags =
-        tag_value_list
-        |> Stream.zip(results)
-        |> Stream.filter(fn {_tag, %{predictions: predictions}} ->
-          top_prediction = Enum.at(predictions, 0)
-          top_prediction.label == "safe" && top_prediction.score > 0.6
+          case pair do
+            [{^k, "safe"}] ->
+              {[{k, v} | safe], unknown}
+
+            [{^k, "unsafe"}] ->
+              {[{k, "unsafe"} | safe], unknown}
+
+            [] ->
+              {safe, [k | unknown]}
+
+            _ ->
+              {safe, unknown}
+          end
         end)
-        |> Stream.map(fn {tag, _} -> tag end)
-        |> Stream.take(10)
-        |> Enum.to_list()
 
-      :ets.insert(__MODULE__, {@ets_key, {Time.utc_now(), sfw_tags}})
+      unknown = Enum.reverse(unknown) |> Enum.take(3)
+      safe = Enum.reverse(safe) |> Enum.take(15)
+
+      if unknown != [] do
+        Nx.Serving.batched_run(NsfwClassifier, unknown)
+        |> Enum.zip(unknown)
+        |> Enum.map(fn {%{predictions: predictions}, tag} ->
+          top_prediction = Enum.at(predictions, 0)
+
+          if top_prediction.label == "safe" && top_prediction.score > 0.6 do
+            {tag, "safe"}
+          else
+            {tag, "unsafe"}
+          end
+        end)
+        |> Enum.map(fn result ->
+          :ets.insert(:inference_cache, result)
+        end)
+      end
+
+      :ets.insert(__MODULE__, {@ets_key, {Time.utc_now(), safe}})
       flush()
       {:noreply, []}
     end

@@ -13,4 +13,12 @@ defmodule TagExtractor do
       []
     end
   end
+
+  def tag_cmp({_, v1}, {_, v2}) when v1 != v2 do
+    v1 > v2
+  end
+
+  def tag_cmp({k1, _}, {k2, _}) do
+    k1 <= k2
+  end
 end

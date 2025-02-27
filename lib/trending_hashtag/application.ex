@@ -28,7 +28,7 @@ defmodule TrendingHashtag.Application do
       {Nx.Serving,
        serving: TrendingHashtag.NsfwClassifier.serving(),
        name: NsfwClassifier,
-       batch_size: 10,
+       batch_size: 1,
        batch_timeout: 100,
        partitions: true},
       %{id: TrendingHashtag.SfwCache, start: {TrendingHashtag.SfwCache, :start_link, []}},

@@ -53,7 +53,7 @@ defmodule TrendingHashtagWeb.DashboardLive do
       |> assign(
         :tags,
         map
-        |> Enum.sort(fn {_k1, v1}, {_k2, v2} -> v1 >= v2 end)
+        |> Enum.sort(&TagExtractor.tag_cmp/2)
         |> Enum.take(15)
       )
       |> assign(:size, size)

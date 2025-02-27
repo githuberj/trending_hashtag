@@ -12,10 +12,10 @@ defmodule TrendingHashtag.SfwCache do
   def init(_) do
     :ets.new(__MODULE__, [:named_table, read_concurrency: true])
     :ets.insert(__MODULE__, {@ets_key, {Time.utc_now(), []}})
-    :ets.new(:inference_cache, [:named_table, :set])
+    table = :ets.new(:inference_cache, [:set])
     flush()
 
-    {:ok, []}
+    {:ok, table}
   end
 
   def start_link do
@@ -27,7 +27,7 @@ defmodule TrendingHashtag.SfwCache do
     value
   end
 
-  def handle_info(:flush, []) do
+  def handle_info(:flush, table) do
     {_size, map} = GenServer.call(TrendingHashtag, :get, 3000)
 
     tag_value_list =
@@ -38,11 +38,11 @@ defmodule TrendingHashtag.SfwCache do
 
     if tag_value_list == [] do
       flush()
-      {:noreply, []}
+      {:noreply, table}
     else
       {safe, unknown} =
         Enum.reduce(tag_value_list, {[], []}, fn {k, v}, {safe, unknown} ->
-          pair = :ets.lookup(:inference_cache, k)
+          pair = :ets.lookup(table, k)
 
           case pair do
             [{^k, "safe"}] ->
@@ -75,13 +75,13 @@ defmodule TrendingHashtag.SfwCache do
           end
         end)
         |> Enum.map(fn result ->
-          :ets.insert(:inference_cache, result)
+          :ets.insert(table, result)
         end)
       end
 
       :ets.insert(__MODULE__, {@ets_key, {Time.utc_now(), safe}})
       flush()
-      {:noreply, []}
+      {:noreply, table}
     end
   end
 end

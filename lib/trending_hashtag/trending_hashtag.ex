@@ -8,7 +8,7 @@ defmodule TrendingHashtag.TrendingHashtag do
 
   def init(_) do
     Phoenix.PubSub.subscribe(TrendingHashtag.PubSub, "firehose")
-    {:ok, SlidingWindowCounter.new(1000)}
+    {:ok, SlidingWindowCounter.new(10_000)}
   end
 
   def handle_info({:frame, json_map}, %SlidingWindowCounter{} = state) do

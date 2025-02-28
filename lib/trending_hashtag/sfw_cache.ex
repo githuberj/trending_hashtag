@@ -41,12 +41,12 @@ defmodule TrendingHashtag.SfwCache do
       {:noreply, table}
     else
       {safe, unknown} =
-        Enum.reduce(tag_value_list, {[], []}, fn {k, v}, {safe, unknown} ->
+        Enum.reduce(tag_value_list, {[], []}, fn {k, _v}, {safe, unknown} ->
           pair = :ets.lookup(table, k)
 
           case pair do
             [{^k, "safe"}] ->
-              {[{k, v} | safe], unknown}
+              {[{k, "safe"} | safe], unknown}
 
             [{^k, "unsafe"}] ->
               {[{k, "unsafe"} | safe], unknown}

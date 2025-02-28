@@ -61,7 +61,8 @@ defmodule TrendingHashtag.MixProject do
       {:bandit, "~> 1.5"},
       {:gun, "~> 2.0"},
       {:bumblebee, "~> 0.6.0"},
-      {:exla, "~> 0.9"}
+      {:exla, "~> 0.9"},
+      {:benchee, "~> 1.0", only: :dev}
     ]
   end
 

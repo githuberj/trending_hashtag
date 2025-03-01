@@ -1,10 +1,10 @@
-defmodule TrendingHashtagWeb.DashboardLive do
+defmodule TrendingHashtagWeb.TrendingLive do
   @moduledoc false
   use TrendingHashtagWeb, :live_view
-
+  alias TrendingHashtag.PostCounter
   alias TrendingHashtag.TrendingHashtag
 
-  @interval 100
+  @interval 200
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -15,6 +15,7 @@ defmodule TrendingHashtagWeb.DashboardLive do
     </.header>
 
     <h4>Current window size: {@size}</h4>
+    <h4>Total posts: {@posts_count}</h4>
 
     <table class="w-full border border-gray-200 rounded-lg">
       <thead class="bg-gray-100">
@@ -39,7 +40,7 @@ defmodule TrendingHashtagWeb.DashboardLive do
   def mount(_params, _session, socket) do
     flush()
 
-    {:ok, socket |> assign(:tags, []) |> assign(:size, 0)}
+    {:ok, socket |> assign(:tags, []) |> assign(:size, 0) |> assign(:posts_count, 0)}
   end
 
   @impl Phoenix.LiveView
@@ -47,6 +48,7 @@ defmodule TrendingHashtagWeb.DashboardLive do
     flush()
 
     {size, map} = GenServer.call(TrendingHashtag, :get, 3000)
+    posts_count = GenServer.call(PostCounter, :get, 3000)
 
     socket =
       socket
@@ -57,6 +59,7 @@ defmodule TrendingHashtagWeb.DashboardLive do
         |> Enum.take(15)
       )
       |> assign(:size, size)
+      |> assign(:posts_count, posts_count)
 
     {:noreply, socket}
   end

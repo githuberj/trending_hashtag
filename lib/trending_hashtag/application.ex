@@ -32,6 +32,7 @@ defmodule TrendingHashtag.Application do
        batch_timeout: 100,
        partitions: true},
       %{id: TrendingHashtag.SfwCache, start: {TrendingHashtag.SfwCache, :start_link, []}},
+      %{id: TrendingHashtag.PostCounter, start: {TrendingHashtag.PostCounter, :start_link, []}},
       TrendingHashtagWeb.Endpoint
     ]
 

@@ -19,8 +19,8 @@ defmodule TrendingHashtagWeb.Router do
     pipe_through(:browser)
 
     live("/", HomeLive, :home)
-    live("/trending", DashboardLive, :get)
-    live("/sfw-trending", SfwTrending, :get)
+    live("/trending", TrendingLive, :get)
+    live("/sfw-trending", SfwTrendingLive, :get)
   end
 
   # Other scopes may use custom stacks.

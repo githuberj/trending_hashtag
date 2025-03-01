@@ -10,7 +10,7 @@ defmodule TagExtractor do
         |> Enum.map(& &1["tag"])
       end)
     else
-      []
+      ["NO-TAG-WAS-USED"]
     end
   end
 

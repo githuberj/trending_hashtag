@@ -1,4 +1,4 @@
-defmodule TrendingHashtagWeb.SfwTrending do
+defmodule TrendingHashtagWeb.SfwTrendingLive do
   @moduledoc false
   use TrendingHashtagWeb, :live_view
 

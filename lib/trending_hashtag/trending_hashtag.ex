@@ -7,7 +7,7 @@ defmodule TrendingHashtag.TrendingHashtag do
   end
 
   def init(_) do
-    Phoenix.PubSub.subscribe(TrendingHashtag.PubSub, "firehose")
+    :ok = Phoenix.PubSub.subscribe(TrendingHashtag.PubSub, "firehose", link: true)
     {:ok, SlidingWindowCounter.new(10_000)}
   end
 

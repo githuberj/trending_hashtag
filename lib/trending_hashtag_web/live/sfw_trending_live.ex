@@ -42,8 +42,6 @@ defmodule TrendingHashtagWeb.SfwTrendingLive do
 
   @impl Phoenix.LiveView
   def handle_info(:flush, socket) do
-    flush()
-
     {last_update, sfw_tags} = TrendingHashtag.SfwCache.get()
 
     socket =
@@ -55,6 +53,7 @@ defmodule TrendingHashtagWeb.SfwTrendingLive do
       |> assign(:size, length(sfw_tags))
       |> assign(:last_update, last_update)
 
+    flush()
     {:noreply, socket}
   end
 

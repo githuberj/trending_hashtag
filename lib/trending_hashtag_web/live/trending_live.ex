@@ -56,7 +56,7 @@ defmodule TrendingHashtagWeb.TrendingLive do
         :tags,
         map
         |> Enum.sort(&TagExtractor.tag_cmp/2)
-        |> Enum.take(15)
+        |> Enum.take(50)
       )
       |> assign(:size, size)
       |> assign(:posts_count, posts_count)

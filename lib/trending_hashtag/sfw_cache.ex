@@ -34,33 +34,33 @@ defmodule TrendingHashtag.SfwCache do
       map
       |> Map.to_list()
       |> Enum.sort(&TagExtractor.tag_cmp/2)
-      |> Enum.take(40)
+      |> Enum.take(50)
 
     if tag_value_list == [] do
       flush()
       {:noreply, table}
     else
-      {safe, unknown} =
-        Enum.reduce(tag_value_list, {[], []}, fn {k, _v}, {safe, unknown} ->
+      {known, unknown} =
+        Enum.reduce(tag_value_list, {[], []}, fn {k, _v}, {known, unknown} ->
           pair = :ets.lookup(table, k)
 
           case pair do
             [{^k, "safe"}] ->
-              {[{k, "safe"} | safe], unknown}
+              {[{k, "safe"} | known], unknown}
 
             [{^k, "unsafe"}] ->
-              {[{k, "unsafe"} | safe], unknown}
+              {[{k, "unsafe"} | known], unknown}
 
             [] ->
-              {safe, [k | unknown]}
+              {known, [k | unknown]}
 
             _ ->
-              {safe, unknown}
+              {known, unknown}
           end
         end)
 
       unknown = Enum.reverse(unknown) |> Enum.take(3)
-      safe = Enum.reverse(safe) |> Enum.take(15)
+      known = Enum.reverse(known) |> Enum.take(50)
 
       if unknown != [] do
         Nx.Serving.batched_run(NsfwClassifier, unknown)
@@ -79,7 +79,7 @@ defmodule TrendingHashtag.SfwCache do
         end)
       end
 
-      :ets.insert(__MODULE__, {@ets_key, {Time.utc_now(), safe}})
+      :ets.insert(__MODULE__, {@ets_key, {Time.utc_now(), known}})
       flush()
       {:noreply, table}
     end
